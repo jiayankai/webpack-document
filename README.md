@@ -24,7 +24,7 @@
 
 关于各个知识点的教材地址以及对应的案例地址:
 
-#### [基础篇]()
+### [基础篇]()
 
 **文档地址**: [《霖呆呆的webpack之路-基础篇》]()
 
@@ -37,7 +37,7 @@
 
 
 
-#### [构建方式篇]()
+### [构建方式篇]()
 
 **文档地址**: [《霖呆呆的webpack之路-构建方式篇》]()
 
@@ -57,7 +57,7 @@
 
 
 
-#### [优化篇]()
+### [优化篇]()
 
 **文档地址**: [《霖呆呆的webpack之路-优化篇》]()
 
@@ -82,7 +82,7 @@
 
 
 
-#### [配置篇]()
+### [配置篇]()
 
 - mode
 - output
@@ -98,10 +98,10 @@
 
 喜欢**霖呆呆**的小伙还希望可以关注霖呆呆的公众号 `LinDaiDai` 或者扫一扫下面的二维码👇👇👇.
 
-<img src="./resource/LinDaiDai公众号二维码.jpg" alt="LinDaiDai公众号" style="zoom:50%;" />
+<img src="./resource/LinDaiDai公众号二维码.png" alt="LinDaiDai公众号" />
 
 我会不定时的更新一些前端方面的知识内容以及自己的原创文章🎉
 
 你的支持和鼓励是我持续创作的主要动力 😊.
 
-<img src="./resource/LinDaiDai赞赏码.png" alt="LinDaiDai赞赏码" style="zoom:33%;" />
+<img src="./resource/LinDaiDai赞赏码.png" alt="LinDaiDai赞赏码" />

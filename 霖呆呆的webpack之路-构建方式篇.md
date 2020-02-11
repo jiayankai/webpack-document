@@ -26,6 +26,8 @@ webpack 中有几个不同的选项，可以帮助你在代码发生变化后自
 
 比如你在重新修改了本地的代码并保存后, 它会重新进行编译, 不需要我们手动再执行编译指令, 缺点**是你需要手动刷新页面**才能看到更改效果.
 
+(`--watch`也可以简写为`-w`)
+
 ### webpack-dev-server
 
 使用`webpack-dev-server`会为你提供一个简单的web服务器, 它的作用就是监听文件的改变并自动编译, **同时会自动刷新页面**. 比观察者模式厉害.
@@ -392,5 +394,152 @@ new webpack.DefinePlugin({
   })
 ```
 
+#### 命令行配置模式mode
+
+除了使用`webpack.DefinePlugin`插件来修改环境变量的模式, 还可以在命令行中修改它:
+
+```
+webpack --mode=production
+或者
+webpack --mode=development
+```
+
+使用了`--mode`设置环境变量模式, 在本地代码上获取到的`process.env.NODE_ENV`的值就是`mode`的值.
+
+**不过如果你同时在命令行中设置的`--mode`, 又使用了`webpac.definePlugin`插件, 后者的优先级高点.**
 
 
+
+#### 命令行传递环境变量
+
+如果我们在命令行中通过`--env`来设置一些变量值, 这些变量值能使我们在webpack.config.js的配置中访问到.
+
+**在webpack命令行配置中, 通过设置 `--env` 可以使你根据需要，传入尽可能多的环境变量**
+
+例如我新建了一个命令行:
+
+```diff
+{
+	"scripts": {
+		"start": "webpack-dev-server --open --config webpack.dev.js",
+    "build": "webpack --config webpack.prod.js",
++   "local": "webpack --env.custom=local --env.production --progress --config webpack.local.js"
+	}
+}
+```
+
+拆开来看:
+
+- `--env.custom=local` 给环境变量中设置一个自定义的属性 `custom`, 它的值为`local`
+- `--env.production`  设置`env.production == true`(这里的`env`并不会影响`process.env`)
+- `--progress` 打印出编译进度的百分比值
+- `--config webpack.local.js` 以`webpack.local.js`中的内容执行webpack构建
+
+同时我在项目根目录下创建一个`wepack.local.js`:
+
+```javascript
+const commonConfig = require('./webpack.common')
+const merge = require('webpack-merge')
+
+module.exports = env => {
+    console.log('custom: ', env.custom) // 'local'
+    console.log('Production: ', env.production) // true
+    return merge(commonConfig, {})
+}
+```
+
+可以看到它与普遍的`webpack.config.js`的区别在于, 它导出的是一个函数, 且这个函数中能访问`env`环境变量.
+
+这样我们就可以将在命令行中设置的变量获取到了.
+
+#### 命令行传递环境变量判断NODE_ENV
+
+还记得我们之前说, 在`webpack.config.js`中是不能获取到环境变量`process.env.NODE_ENV` , 也就是不能做以下判断:
+
+```
+process.env.NODE_ENV === 'production' ? '[name].[hash].bundle.js' : '[name].bundle.js'
+```
+
+但是现在我们在命令行里传递一个变量进去, 比如叫做`NODE_ENV`, 这样就可以在`webpack.config.js`里作区分了.
+
+让我们在根目录下创建一个名为`webpack.combine.js`的配置文件:
+
+**webpack.combine.js**:
+
+```javascript
+const path = require('path')
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
+
+module.exports = env => {
+    return {
+        entry: './src/index.js',
+        output: {
+            filename: env.NODE_ENV === 'production' ? '[name].[hash].bundle.js' : '[name].bundle.js',
+            path: path.resolve(__dirname, 'dist')
+        },
+        plugins: [
+            new CleanWebpackPlugin(),
+            new HtmlWebpackPlugin({
+                title: '合并成同一个webpack配置'
+            })
+        ]
+    }
+}
+```
+
+我们可以看到`ouput.filename`,可以通过`NODE_ENV`来判断.
+
+所以我需要在`package.json` 中进行参数的传递:
+
+```diff
+{
+    "name": "webpack-bundle",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "webpack-dev-server --open --config webpack.dev.js",
+        "build": "webpack --config webpack.prod.js",
+        "local": "webpack --env.custom=local --env.production=false --mode=development --progress --config webpack.local.js",
++       "combine-dev": "webpack --env.NODE_ENV=development --config webpack.combine.js",
++       "combine-prod": "webpack --env.NODE_ENV=production --config webpack.combine.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "clean-webpack-plugin": "^3.0.0",
+        "html-webpack-plugin": "^3.2.0",
+        "lodash": "^4.17.15",
+        "uglifyjs-webpack-plugin": "^2.2.0",
+        "webpack": "^4.41.5",
+        "webpack-cli": "^3.3.10",
+        "webpack-dev-server": "^3.10.3",
+        "webpack-merge": "^4.2.2"
+    }
+}
+```
+
+现在分别执行`combine-dev`和`combine-prod`, 可以看到生成的bundle又不同的效果.
+
+`combine-dev`生成的js文件是`main.bundle.js`
+
+`combine-prod`生成的js文件是`main.a79eb0c94212b905d48b.bundle.js`
+
+**但是有一点需要注意的是这里的env.NODE_ENV并不是process.env.NODE_ENV**, 所以它并不能改变process.env.
+
+也就是说不管你通过哪种方式生成的页面, 你在页面中获取到的`process.env.NODE_ENV`都还是`production`.
+
+
+
+### 总结
+
+**第二节中所有案例的GitHub地址: [LinDaiDai/webpack-merge]()**
+
+- 可以安装webpack-merge工具帮助我们将多个配置文件合并成一个
+- 在webpack.config.js获取不到环境变量`process`
+- 可以通过webpack.DefinePlugin插件帮助我们修改process.env的值
+- 还可以通过命令行CLI中的 --mode 来修改环境变量的模式
+- 若是webpack.config.js导出的是一个函数, 则允许我们在命令行中用 --env 传递环境变量

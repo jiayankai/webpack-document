@@ -653,6 +653,53 @@ import Data from './data.xml'
 
 
 
+### 3.5 加载txt文本数据
+
+加载`.txt`文本数据依靠`raw-loader`.
+
+```
+$ npm i --save-dev raw-loader
+```
+
+然后配置:
+
+```javascript
+rules: [
+	{
+		test: /\.(csv|tsv)$/,
+		use: [
+			'csv-loader'
+		]
+	},
+	{
+		test: /\.txt$/,
+		use: 'raw-loader'
+	}
+]
+```
+
+此时引用`.txt`文件就可以获取它里面的内容了:
+
+```javascript
+import txt from './assets/file.txt'
+
+export function print() {
+    console.log(txt) // 我是一段测试raw-loader的文本内容
+}
+```
+
+如果你使用`file-loader`来处理`txt`文件的话, 会将`txt`文件压缩到bundle中,而且只能获取到文件的路径:
+
+```javascript
+import txt from './assets/file.txt'
+
+export function print() {
+    console.log(txt) // 1474623111aaae6b31c08e1fedda68a3.txt
+}
+```
+
+
+
 ## 四、管理输出
 
 ### 4.1 多个输入/输出

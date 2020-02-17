@@ -614,6 +614,105 @@ Entrypoint index = index.bundle.js
 
 
 
+### 2.5 css代码分离
+
+我们知道使用`style-loader`和`css-loader`能帮助我们在项目中使用css文件.
+
+但是它的实现方式是将css代码添加到页面head的style标签里.
+
+也就是说并不会在最终的bundle中生成对应的css文件.
+
+但是在实际使用来说, 我们更希望能将less或者css文件提取出来作为一个单独的文件加载到页面上.
+
+通过[Vue Loader中的CSS提取](https://vue-loader.vuejs.org/zh/guide/extract-css.html)我发在webpack4中使用**mini-css-extract-plugin**
+
+(官网推荐的是使用`extract-text-webpack-plugin`, 在`Vue Loader`中表示它最好在`webpack3`中使用)
+
+#### mini-css-extract-plugin
+
+在webpack4中我们最好使用`mini-css-extract-plugin`来达到css代码分离的效果.
+
+1. 安装插件
+
+```
+$ cnpm i --save-dev mini-css-extract-plugin
+```
+
+2. 在webpack.config.js中配置:
+
+```javascript
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+
+module.exports = {
+  plugins: [new MiniCssExtractPlugin()],
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
+      },
+    ],
+  },
+};
+```
+
+
+
+#### extract-text-webpack-plugin
+
+这时候就需要用到**extract-text-webpack-plugin** 插件.
+
+1. 安装插件
+
+```
+$ cnpm i --save-dev extract-text-webpack-plugin
+```
+
+2. 在webpack.config.js中配置:
+
+```diff
+const path = require('path');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
++ const ExtractTextPlugin = require('extract-text-webpack-plugin');
++ const extractCss = new ExtractTextPlugin({
++    filename: "[name].[hash].css",
++    disable: process.env.NODE_ENV === "development"
++ });
+module.exports = {
+	entry: {
+        index: './src/index.js'
+    },
+    plugins: [
+        new CleanWebpackPlugin(),
+        new HTMLWebpackPlugin(),
++       extractCss
+    ],
+    output: {
+        filename: '[name].bundle.js',
+        path: path.resolve(__dirname, 'dist')
+    },
+    devtool: 'inline-source-map',
++    module: {
++    	rules: [
++    		{
++    			test: /.css$/,
++    			use: extractCss.extract({
++            use: [{
++                loader: "css-loader"
++            }],
++            fallback: "style-loader"
++          })
++    		}
++    	]
++    }
+}
+```
+
+less或者sass代码分离的方式和它一样,具体案例可以查看GitHub案例地址: [LinDaiDai/webpack-loader]()
+
+
+
 ## 三、懒加载
 
 **懒加载**又名**按需加载**, 相信大家平常都有听过.

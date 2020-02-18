@@ -12,7 +12,7 @@
 
 **webpack: "是我不够迷人吗?"**
 
-![找不到表情包](/Users/lindaidai/Pictures/表情包/babel/找不到表情包.jpeg)
+![找不到表情包](./resource/找不到表情包.jpeg)
 
 
 
